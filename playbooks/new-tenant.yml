@@ -104,9 +104,8 @@
       cisco.nxos.nxos_config:
         parents:
           - "interface nve1"
-          - "member vni {{ item.l3vni }}"
         lines:
-          - "associate-vrf"
+          - "member vni {{ item.l3vni }} associate-vrf"
       loop: "{{ tenants }}"
       tags: deploy
 
