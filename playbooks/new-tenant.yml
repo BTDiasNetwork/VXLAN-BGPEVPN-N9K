@@ -1,0 +1,156 @@
+---
+- name: Provision VXLAN EVPN Tenants
+  hosts: a-leafs
+  gather_facts: false
+
+  collections:
+    - cisco.nxos
+
+  tasks:
+
+    ####################################################################
+    # FEATURES
+    ####################################################################
+
+    - name: Enable required features
+      cisco.nxos.nxos_config:
+        lines:
+          - feature nv overlay
+          - feature vn-segment
+          - feature bgp
+          - feature interface-vlan
+
+
+    ####################################################################
+    # VRF / L3VNI
+    ####################################################################
+
+    - name: Configure tenant VRF
+      cisco.nxos.nxos_config:
+        parents:
+          - "vrf context {{ item.vrf }}"
+        lines:
+          - "vni {{ item.l3vni }}"
+      loop: "{{ tenants }}"
+      tags: deploy
+
+
+    ####################################################################
+    # VLAN / L2VNI
+    ####################################################################
+
+    - name: Configure tenant VLAN
+      cisco.nxos.nxos_config:
+        parents:
+          - "vlan {{ item.vlan_id }}"
+        lines:
+          - "name {{ item.vlan_name }}"
+          - "vn-segment {{ item.l2vni }}"
+      loop: "{{ tenants }}"
+      tags: deploy
+
+
+    ####################################################################
+    # SVI
+    ####################################################################
+
+    - name: Configure tenant SVI
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface Vlan{{ item.vlan_id }}"
+        lines:
+          - "description SVI-{{ item.name }}"
+          - "vrf member {{ item.vrf }}"
+          - "ip address {{ item.svi_ip }}"
+          - "no shutdown"
+      loop: "{{ tenants }}"
+      tags: deploy
+
+
+    ####################################################################
+    # NVE
+    ####################################################################
+
+    - name: Configure NVE1
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface nve1"
+        lines:
+          - "no shutdown"
+          - "source-interface loopback1"
+          - "host-reachability protocol bgp"
+
+
+    ####################################################################
+    # L2VNI
+    ####################################################################
+
+    - name: Configure L2VNI with multicast replication
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface nve1"
+          - "member vni {{ item.l2vni }}"
+        lines:
+          - "mcast-group {{ item.multicast_group }}"
+      loop: "{{ tenants }}"
+      tags: deploy
+
+
+    ####################################################################
+    # L3VNI
+    ####################################################################
+
+    - name: Configure L3VNI
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface nve1"
+          - "member vni {{ item.l3vni }}"
+        lines:
+          - "associate-vrf"
+      loop: "{{ tenants }}"
+      tags: deploy
+
+
+    ####################################################################
+    # BGP EVPN - GLOBAL
+    ####################################################################
+
+    - name: Enable BGP EVPN address-family
+      cisco.nxos.nxos_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+          - "address-family l2vpn evpn"
+      
+
+
+    ####################################################################
+    # EVPN L2VNI
+    ####################################################################
+
+    - name: Configure EVPN L2VNI
+      cisco.nxos.nxos_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+          - "address-family l2vpn evpn"
+          - "evpn"
+          - "vni {{ item.l2vni }} l2"
+        lines:
+          - "rd auto"
+          - "route-target import auto"
+          - "route-target export auto"
+      loop: "{{ tenants }}"
+
+
+    ####################################################################
+    # BGP VRF
+    ####################################################################
+
+    - name: Configure BGP tenant VRF
+      cisco.nxos.nxos_config:
+        parents:
+          - "router bgp {{ bgp_as }}"
+          - "vrf {{ item.vrf }}"
+          - "address-family ipv4 unicast"
+        lines:
+          - "advertise l2vpn evpn"
+      loop: "{{ tenants }}"

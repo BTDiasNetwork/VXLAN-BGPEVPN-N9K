@@ -1,0 +1,78 @@
+---
+- name: Configure VXLAN EVPN Tenant
+  hosts: a-leafs
+  gather_facts: false
+
+  collections:
+    - cisco.nxos
+
+  tasks:
+
+    ####################################################################
+    # VXLAN prerequisites
+    ####################################################################
+
+    - name: Enable VXLAN features
+      cisco.nxos.nxos_config:
+        lines:
+          - feature nv overlay
+          - feature vn-segment
+          - feature bgp
+
+
+    ####################################################################
+    # VLAN
+    ####################################################################
+
+    - name: Configure tenant VLAN
+      cisco.nxos.nxos_config:
+        parents:
+          - "vlan {{ tenant.vlan_id }}"
+        lines:
+          - "name {{ tenant.vlan_name }}"
+          - "vn-segment {{ tenant.vni }}"
+
+
+    ####################################################################
+    # NVE1
+    ####################################################################
+
+    - name: Configure NVE interface
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface {{ tenant.nve_interface }}"
+        lines:
+          - "no shutdown"
+          - "source-interface {{ tenant.nve_source_interface }}"
+          - "host-reachability protocol bgp"
+        tags: 
+
+
+    ####################################################################
+    # L2 VNI + multicast replication
+    ####################################################################
+
+    - name: Configure L2 VNI on NVE
+      cisco.nxos.nxos_config:
+        parents:
+          - "interface {{ tenant.nve_interface }}"
+          - "member vni {{ tenant.vni }}"
+        lines:
+          - "mcast-group {{ tenant.multicast_group }}"
+
+
+    ####################################################################
+    # BGP EVPN
+    ####################################################################
+
+    - name: Configure EVPN VNI
+      cisco.nxos.nxos_config:
+        parents:
+          - "router bgp {{ tenant.bgp_as }}"
+          - "address-family l2vpn evpn"
+          - "evpn"
+          - "vni {{ tenant.vni }} l2"
+        lines:
+          - "rd {{ vtep_ip }}:{{ tenant.vni }}"
+          - "route-target import {{ tenant.rt }}"
+          - "route-target export {{ tenant.rt }}"

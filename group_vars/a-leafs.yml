@@ -1,0 +1,24 @@
+---
+bgp_as: 65001
+
+tenants:
+
+  - name: CLIENTE_A
+
+    vlan_id: 30
+    vlan_name: CLIENTE_A
+
+    # L2VNI
+    l2vni: 10030
+
+    # L3VNI
+    l3vni: 50001
+
+    # VRF
+    vrf: CLIENTE_A
+
+    # Multicast BUM
+    multicast_group: 239.30.30.30
+
+    # SVI
+    svi_ip: 10.30.0.1/24
