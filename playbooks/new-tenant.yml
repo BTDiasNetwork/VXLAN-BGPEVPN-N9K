@@ -139,6 +139,7 @@
           - "route-target import auto"
           - "route-target export auto"
       loop: "{{ tenants }}"
+      tags: deploy
 
 
     ####################################################################
@@ -154,3 +155,4 @@
         lines:
           - "advertise l2vpn evpn"
       loop: "{{ tenants }}"
+      tags: deploy
