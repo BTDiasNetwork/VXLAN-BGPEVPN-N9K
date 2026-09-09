@@ -5,33 +5,33 @@ all:
         ansible_network_os: cisco.nxos.nxos
         ansible_connection: ansible.netcommon.network_cli
       hosts:
-        A-SPINE-1:
+        A_SPINE_1:
           ansible_host: 10.0.0.1
-        A-SPINE-2:
+        A_SPINE_2:
           ansible_host: 10.0.0.2
-        A-LEAF-1:
+        A_LEAF_1:
           ansible_host: 10.0.0.11
-        A-LEAF-2:
+        A_LEAF_2:
           ansible_host: 10.0.0.12
-        A-LEAF-3:
+        A_LEAF_3:
           ansible_host: 10.0.0.13
     a-spines:
       vars:
         ansible_network_os: cisco.nxos.nxos
         ansible_connection: ansible.netcommon.network_cli
       hosts:
-        A-SPINE-1:
+        A_SPINE_1:
           ansible_host: 10.0.0.1
-        A-SPINE-2:
+        A_SPINE_2:
           ansible_host: 10.0.0.2
     a-leafs:
       vars:
         ansible_network_os: cisco.nxos.nxos
         ansible_connection: ansible.netcommon.network_cli
       hosts:
-        A-LEAF-1:
+        A_LEAF_1:
           ansible_host: 10.0.0.11
-        A-LEAF-2:
+        A_LEAF_2:
           ansible_host: 10.0.0.12
-        A-LEAF-3:
+        A_LEAF_3:
           ansible_host: 10.0.0.13
