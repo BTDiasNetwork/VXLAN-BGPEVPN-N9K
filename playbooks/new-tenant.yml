@@ -63,6 +63,7 @@
           - "vrf member {{ item.vrf }}"
           - "ip address {{ item.svi_ip }}"
           - "no shutdown"
+          - "fabric forwarding mode anycast-gateway"
       loop: "{{ tenants }}"
       tags: deploy
 
