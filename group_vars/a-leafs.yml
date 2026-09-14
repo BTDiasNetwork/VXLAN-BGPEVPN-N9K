@@ -17,18 +17,4 @@ tenants:
     multicast_group: 239.1.1.30
     # SVI
     svi_ip: 10.30.0.1/24
-    
-# SEGUNDO TENANT
-    - name: CLIENTE_YTB
-    vlan_id: 40
-    vlan_name: CLIENTE_A
-    # L2VNI
-    l2vni: 10040
-    # L3VNI
-    l3vni: 50001
-    # VRF
-    vrf: CLIENTE_YTB
-    # Multicast BUM
-    multicast_group: 239.1.1.40
-    # SVI
-    svi_ip: 10.40.0.1/24
+
